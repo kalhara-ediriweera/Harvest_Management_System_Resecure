@@ -1,5 +1,7 @@
 const express = require("express");
 const router = express.Router();
+const { protect, roleAuth } = require("../middlewares/auth");
+
 
 const {
   getSales,
@@ -48,7 +50,7 @@ router.delete("/expenses/:id", deleteExpense);
 router.get("/expenses/summary", getExpensesSummary);
 
 // Farmers routes
-router.get("/farmers", getAllFarmers);
+router.get("/farmers", protect, roleAuth(["admin"]), getAllFarmers);
 router.put("/farmers/:id", updateFarmer);
 router.delete("/farmers/:id", deleteFarmer);
 router.get("/farmers/:farmerId/stats", getFarmerStats);
