@@ -12,7 +12,7 @@ const protect = async (req, res, next) => {
     try {
       token = req.headers.authorization.split(" ")[1]; // Get token from header
       // Verify token using the same secret and payload fields used when signing
-      const decoded = jwt.verify(token, "your_jwt_secret");
+      const decoded = jwt.verify(token, process.env.JWT_SECRET);
 
       // Attach user data to the request
       req.user = await User.findById(decoded.id).select("-password");
