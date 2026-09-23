@@ -2,8 +2,12 @@ const Expenses = require("../models/expensesModel");
 
 const getExpensesByUser = async (req, res) => {
   try {
+    if (req.params.user !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const expenses = await Expenses.find({
-      user: req.params.user,
+      user: req.user._id,
     }).sort({ date: -1 });
 
     res.status(200).json(expenses);
