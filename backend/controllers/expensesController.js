@@ -2,9 +2,10 @@ const Expenses = require("../models/expensesModel");
 
 const getExpensesByUser = async (req, res) => {
   try {
-    let filter = { user: req.params.user }; // Filter by user ID
+    const expenses = await Expenses.find({
+      user: req.params.user,
+    }).sort({ date: -1 });
 
-    const expenses = await Expenses.find(filter).sort({ date: -1 });
     res.status(200).json(expenses);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -22,23 +23,35 @@ const getAllExpenses = async (req, res) => {
 
 const createExpense = async (req, res) => {
   try {
-    console.log("Request body for expense:", req.body);
+    const expense = await Expenses.create({
+      ...req.body,
+      user: req.user._id,
+    });
 
-    const expense = await Expenses.create(req.body);
-    res.status(201).json(expense); // Respond with the created expense
+    res.status(201).json(expense);
   } catch (error) {
-    console.error("Error in createExpense:", error);
     res.status(400).json({ error: error.message });
   }
 };
 
 const updateExpense = async (req, res) => {
   try {
+    const expense = await Expenses.findById(req.params.id);
+
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    if (expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     const updatedExpense = await Expenses.findByIdAndUpdate(
       req.params.id,
       req.body,
       { new: true }
     );
+
     res.status(200).json(updatedExpense);
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -47,7 +60,18 @@ const updateExpense = async (req, res) => {
 
 const deleteExpense = async (req, res) => {
   try {
+    const expense = await Expenses.findById(req.params.id);
+
+    if (!expense) {
+      return res.status(404).json({ message: "Expense not found" });
+    }
+
+    if (expense.user.toString() !== req.user._id.toString()) {
+      return res.status(403).json({ message: "Access denied" });
+    }
+
     await Expenses.findByIdAndDelete(req.params.id);
+
     res.status(200).json({ message: "Expense deleted" });
   } catch (error) {
     res.status(500).json({ error: error.message });
@@ -57,7 +81,9 @@ const deleteExpense = async (req, res) => {
 const getExpensesSummary = async (req, res) => {
   try {
     const { startDate, endDate } = req.query;
-    let match = {};
+    let match = {
+      user: req.user._id,
+    };
 
     if (startDate && endDate) {
       match.date = {
