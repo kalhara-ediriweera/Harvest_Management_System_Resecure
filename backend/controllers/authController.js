@@ -26,7 +26,17 @@ exports.register = async (req, res) => {
   const name = (req.body.name || "").trim();
   const email = (req.body.email || "").trim().toLowerCase();
   const password = (req.body.password || "").trim();
-  const role = (req.body.role || "farmer").trim().toLowerCase();
+  const requestedRole = (req.body.role || "farmer").trim().toLowerCase();
+
+  const allowedRegistrationRoles = ["farmer", "buyer"];
+
+  if (!allowedRegistrationRoles.includes(requestedRole)) {
+    return res.status(403).json({
+      message: "Admin registration is not allowed through public registration",
+    });
+  }
+
+  const role = requestedRole;
   try {
     const existing = await User.findOne({
       email: { $regex: `^${email}$`, $options: "i" },
