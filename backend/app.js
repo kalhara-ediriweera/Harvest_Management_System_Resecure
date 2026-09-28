@@ -23,7 +23,18 @@ const smsRoutes = require('./routes/smsRoutes');
 const app = express();
 
 // Middleware
-app.use(cors());
+
+const frontendOrigin =
+  process.env.FRONTEND_URL ||
+  "http://localhost:5173";
+
+app.use(
+  cors({
+    origin: frontendOrigin,
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist

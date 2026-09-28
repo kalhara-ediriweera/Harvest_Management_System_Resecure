@@ -1,123 +1,314 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
 
+const AUTH_COOKIE_NAME = "harvest_access_token";
+const AUTH_COOKIE_MAX_AGE = 24 * 60 * 60 * 1000;
+
 const generateToken = (id, role) => {
-  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+  return jwt.sign(
+    { id, role },
+    process.env.JWT_SECRET,
+    { expiresIn: "1d" }
+  );
 };
 
-//get user by id
+// Authentication cookie configuration
+const authCookieOptions = {
+  httpOnly: true,
+  secure: process.env.NODE_ENV === "production",
+  sameSite: "lax",
+  maxAge: AUTH_COOKIE_MAX_AGE,
+  path: "/",
+};
+
+// Store JWT inside an HttpOnly cookie
+const setAuthCookie = (res, token) => {
+  res.cookie(
+    AUTH_COOKIE_NAME,
+    token,
+    authCookieOptions
+  );
+};
+
+// Get user by ID
 exports.getById = async (req, res) => {
   try {
-    const userId = req.params.id; // Get the user ID from the request parameters
-    const user = await User.findById(userId).select("-password");// Find the user by ID
+    const userId = req.params.id;
+
+    const user = await User
+      .findById(userId)
+      .select("-password");
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
-    res.status(200).json(user); // Send the user data as a response
+
+    res.status(200).json(user);
+
   } catch (error) {
-    res
-      .status(500)
-      .json({ message: "unable to fetch user.", error: error.message });
+    res.status(500).json({
+      message: "unable to fetch user.",
+      error: error.message
+    });
   }
 };
 
+
+// ================================
 // Register User
+// ================================
 exports.register = async (req, res) => {
+
   const name = (req.body.name || "").trim();
   const email = (req.body.email || "").trim().toLowerCase();
   const password = (req.body.password || "").trim();
-  const requestedRole = (req.body.role || "farmer").trim().toLowerCase();
+  const requestedRole =
+    (req.body.role || "farmer").trim().toLowerCase();
 
-  const allowedRegistrationRoles = ["farmer", "buyer"];
+  const allowedRegistrationRoles = [
+    "farmer",
+    "buyer"
+  ];
 
   if (!allowedRegistrationRoles.includes(requestedRole)) {
     return res.status(403).json({
-      message: "Admin registration is not allowed through public registration",
+      message:
+        "Admin registration is not allowed through public registration"
     });
   }
 
   const role = requestedRole;
-  try {
-    const existing = await User.findOne({
-      email: { $regex: `^${email}$`, $options: "i" },
-    });
-    if (existing)
-      return res.status(400).json({ message: "Email already exists" });
 
-    const user = await User.create({ name, email, password, role });
-    const token = generateToken(user._id, user.role);
-    const safeUser = user.toObject();
-    delete safeUser.password;
-    res.status(201).json({ user: safeUser, token });
-  } catch (err) {
-    if (err.name === "ValidationError") {
-      return res.status(400).json({ message: err.message });
+  try {
+
+    const existing = await User.findOne({
+      email: {
+        $regex: `^${email}$`,
+        $options: "i"
+      }
+    });
+
+    if (existing) {
+      return res.status(400).json({
+        message: "Email already exists"
+      });
     }
-    res
-      .status(500)
-      .json({ message: "Registration failed", error: err.message });
+
+    const user = await User.create({
+      name,
+      email,
+      password,
+      role
+    });
+
+    const token = generateToken(
+      user._id,
+      user.role
+    );
+
+    const safeUser = user.toObject();
+
+    delete safeUser.password;
+
+    // JWT is stored in HttpOnly cookie
+    setAuthCookie(res, token);
+
+    // JWT is NOT returned to React
+    res.status(201).json({
+      user: safeUser
+    });
+
+  } catch (err) {
+
+    if (err.name === "ValidationError") {
+      return res.status(400).json({
+        message: err.message
+      });
+    }
+
+    res.status(500).json({
+      message: "Registration failed",
+      error: err.message
+    });
   }
 };
 
+
+// ================================
 // Login User
+// ================================
 exports.login = async (req, res) => {
-  const rawEmail = (req.body.email || "").trim();
-  const rawPassword = (req.body.password || "").trim();
-  const email = rawEmail.toLowerCase();
-  const password = rawPassword;
+
+  const rawEmail =
+    (req.body.email || "").trim();
+
+  const rawPassword =
+    (req.body.password || "").trim();
+
+  const email =
+    rawEmail.toLowerCase();
+
+  const password =
+    rawPassword;
+
   try {
-    // Find user by email, case-insensitive
+
     const user = await User.findOne({
-      email: { $regex: `^${email}$`, $options: "i" },
+      email: {
+        $regex: `^${email}$`,
+        $options: "i"
+      }
     });
+
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
+
 
     let isMatch = false;
+
     try {
-      if (typeof user.matchPassword === "function") {
-        isMatch = await user.matchPassword(password);
-      } else if (typeof user.correctPassword === "function") {
-        isMatch = await user.correctPassword(password, user.password);
+
+      if (
+        typeof user.matchPassword === "function"
+      ) {
+
+        isMatch =
+          await user.matchPassword(password);
+
+      } else if (
+        typeof user.correctPassword === "function"
+      ) {
+
+        isMatch =
+          await user.correctPassword(
+            password,
+            user.password
+          );
+
       } else {
+
         isMatch = false;
+
       }
+
     } catch (e) {
+
       isMatch = false;
+
     }
 
+
     const looksHashed =
-      typeof user.password === "string" && user.password.startsWith("$2");
-    if (!isMatch && !looksHashed && user.password === password) {
+      typeof user.password === "string" &&
+      user.password.startsWith("$2");
+
+
+    if (
+      !isMatch &&
+      !looksHashed &&
+      user.password === password
+    ) {
+
       user.password = password;
+
       await user.save();
+
       isMatch = true;
     }
 
+
     if (!isMatch) {
-      return res.status(401).json({ message: "Invalid password" });
+      return res.status(401).json({
+        message: "Invalid password"
+      });
     }
 
-    const token = generateToken(user._id, user.role);
-    const safeUser = user.toObject();
+
+    // Generate JWT
+    const token = generateToken(
+      user._id,
+      user.role
+    );
+
+
+    const safeUser =
+      user.toObject();
+
     delete safeUser.password;
-    res.json({ user: safeUser, token });
+
+
+    // Store JWT in HttpOnly cookie
+    setAuthCookie(
+      res,
+      token
+    );
+
+
+    // IMPORTANT:
+    // JWT is NOT returned in JSON
+    res.json({
+      user: safeUser
+    });
+
   } catch (err) {
-    res.status(500).json({ error: err.message });
+
+    res.status(500).json({
+      error: err.message
+    });
   }
 };
 
+
+// ================================
+// Get Current User Profile
+// ================================
 exports.getProfile = async (req, res) => {
+
   try {
-    const user = await User.findById(req.user._id).select("-password");
+
+    const user = await User
+      .findById(req.user._id)
+      .select("-password");
 
     if (!user) {
-      return res.status(404).json({ message: "User not found" });
+      return res.status(404).json({
+        message: "User not found"
+      });
     }
 
     res.status(200).json(user);
+
   } catch (err) {
-    res.status(500).json({ message: err.message });
+
+    res.status(500).json({
+      message: err.message
+    });
   }
+};
+
+
+// ================================
+// Logout
+// ================================
+exports.logout = (req, res) => {
+
+  res.clearCookie(
+    AUTH_COOKIE_NAME,
+    {
+      httpOnly: true,
+      secure:
+        process.env.NODE_ENV === "production",
+      sameSite: "lax",
+      path: "/"
+    }
+  );
+
+  res.status(200).json({
+    message: "Logged out successfully"
+  });
 };

@@ -9,14 +9,9 @@ import { FaSearch, FaEye, FaEdit, FaTrash, FaFilePdf, FaFilter } from 'react-ico
 // ⬇️ Get the logged-in user (id comes from your AuthProvider)
 import { useAuth } from '../../contexts/AuthContext'; // <-- adjust path if needed
 
-/** ---------------- axios instance that sends the JWT ---------------- */
 const api = axios.create({
-  baseURL: 'http://localhost:5000/api',
-});
-api.interceptors.request.use((config) => {
-  const token = localStorage.getItem('token');
-  if (token) config.headers.Authorization = `Bearer ${token}`;
-  return config;
+  baseURL: "http://localhost:5000/api",
+  withCredentials: true
 });
 
 /** ---------------- PDF helpers (kept same styling) ---------------- */
@@ -43,7 +38,7 @@ const addHeader = (doc) => {
   doc.setFont('helvetica', 'normal');
   doc.text('Stock Inventory Report', 35, 25);
 
-  const today = new Date().toLocaleDateString('en-US', { year:'numeric', month:'long', day:'numeric' });
+  const today = new Date().toLocaleDateString('en-US', { year: 'numeric', month: 'long', day: 'numeric' });
   doc.setFontSize(10);
   doc.setTextColor(220, 220, 220);
   doc.text(`Generated: ${today}`, pageWidth - 15, 20, { align: 'right' });
@@ -414,9 +409,8 @@ const StockTable = ({ stocks = [], setStocks }) => {
                       setCropTypeFilter(type);
                       setShowFilterDropdown(false);
                     }}
-                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${
-                      cropTypeFilter === type ? 'bg-green-100 font-medium' : ''
-                    }`}
+                    className={`block w-full text-left px-4 py-2 hover:bg-gray-100 ${cropTypeFilter === type ? 'bg-green-100 font-medium' : ''
+                      }`}
                   >
                     {type === 'all' ? 'All Crops' : type.charAt(0).toUpperCase() + type.slice(1)}
                   </button>

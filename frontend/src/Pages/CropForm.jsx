@@ -73,7 +73,7 @@ const CropForm = () => {
       const response = await axios.get(
         `http://localhost:5000/api/weather?area=${encodeURIComponent(areaName)}&lat=${selectedArea.lat}&lon=${selectedArea.lon}`
       );
-      
+
       if (response.data.success) {
         setWeather(response.data.weather);
       } else {
@@ -187,7 +187,7 @@ const CropForm = () => {
   const handleSubmit = async (e) => {
     e.preventDefault();
     setIsSubmitting(true);
-    
+
     // Show professional loading toast
     const loadingToast = toast.loading(
       <div className="text-center">
@@ -226,32 +226,11 @@ const CropForm = () => {
     }
 
     try {
-      const token = localStorage.getItem('token');
-      if (!token) {
-        toast.error(
-          <div className="text-center">
-            <div className="font-semibold text-lg mb-1">🔒 Authentication Required</div>
-            <div className="text-sm">Please log in to register your crops</div>
-            <div className="text-xs mt-1 text-gray-600">
-              Redirecting to login page...
-            </div>
-          </div>,
-          {
-            autoClose: 3000,
-            hideProgressBar: false,
-            closeOnClick: true,
-            pauseOnHover: true,
-            draggable: true,
-          }
+      const response =
+        await axios.post(
+          "http://localhost:5000/crops/add",
+          formData
         );
-        toast.dismiss(loadingToast);
-        navigate('/login');
-        setIsSubmitting(false);
-        return;
-      }
-      const response = await axios.post('http://localhost:5000/crops/add', formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
       setResult(response.data.crops);
       toast.success(
         <div className="text-center">
@@ -271,7 +250,7 @@ const CropForm = () => {
           draggable: true,
         }
       );
-      
+
       // Dismiss loading toast
       toast.dismiss(loadingToast);
 
@@ -318,7 +297,7 @@ const CropForm = () => {
           draggable: true,
         }
       );
-      
+
       // Dismiss loading toast
       toast.dismiss(loadingToast);
     } finally {
@@ -371,11 +350,10 @@ const CropForm = () => {
           name="farmerName"
           value={formData.farmerName}
           onChange={handleChange}
-          className={`w-full border rounded px-3 py-2 mb-4 ${
-            currentUser && currentUser.name 
-              ? 'border-green-300 bg-green-50' 
+          className={`w-full border rounded px-3 py-2 mb-4 ${currentUser && currentUser.name
+              ? 'border-green-300 bg-green-50'
               : 'border-gray-300'
-          }`}
+            }`}
           placeholder="Enter only letters"
           readOnly={currentUser && currentUser.name}
           required
@@ -508,7 +486,7 @@ const CropForm = () => {
           </div>
         )}
 
-        <ToastContainer 
+        <ToastContainer
           position="top-center"
           autoClose={5000}
           hideProgressBar={false}
@@ -525,7 +503,7 @@ const CropForm = () => {
             border: '1px solid rgba(255, 255, 255, 0.2)',
             backdropFilter: 'blur(10px)',
           }}
-          style={{ 
+          style={{
             top: '80px', // Position below the navigation bar
             zIndex: 9999 // Higher than navigation bar z-index (99)
           }}
