@@ -7,7 +7,9 @@ const User = require("../models/UserModel");
 const getAllFarmers = async (req, res) => {
   try {
     let filter = { role: "farmer" };
-    const farmers = await User.find(filter).sort({ name: 1 });
+    const farmers = await User.find(filter)
+      .select("-password")
+      .sort({ name: 1 });
     console.log("Farmers: ", farmers);
 
     res.status(200).json(farmers);
@@ -23,7 +25,15 @@ const updateFarmer = async (req, res) => {
       req.body,
       { new: true }
     );
-    res.status(200).json(updatedFarmer);
+
+    if (!updatedFarmer) {
+      return res.status(404).json({ message: "Farmer not found" });
+    }
+
+    const safeFarmer = updatedFarmer.toObject();
+    delete safeFarmer.password;
+
+    res.status(200).json(safeFarmer);
   } catch (error) {
     res.status(500).json({ error: error.message });
   }
