@@ -21,7 +21,6 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const smsRoutes = require('./routes/smsRoutes');
 
 const app = express();
-const { seedDefaultUsers } = require("./utils/seedUsers");
 
 // Middleware
 app.use(cors());
@@ -58,7 +57,6 @@ mongoose
   .connect(dbURI)
   .then(() => {
     console.log("Connected to MongoDB");
-    seedDefaultUsers();
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.log(err));
