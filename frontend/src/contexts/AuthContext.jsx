@@ -52,50 +52,26 @@ export const AuthProvider = ({
   );
 
 
-  // Restore authentication
-  // using the HttpOnly cookie.
+  // Refresh session using the HttpOnly cookie
+  const refreshSession = async () => {
+    const res = await axios.get(`${API_BASE_URL}/api/auth/profile`);
+    setCurrentUser(res.data);
+    localStorage.setItem("user", JSON.stringify(res.data));
+    return res.data;
+  };
+
+  // Restore authentication using the HttpOnly cookie.
   useEffect(() => {
-
-    const restoreSession =
-      async () => {
-
-        try {
-
-          const res =
-            await axios.get(
-              `${API_BASE_URL}/api/auth/profile`
-            );
-
-
-          setCurrentUser(
-            res.data
-          );
-
-
-          // Only normal user data
-          // is stored.
-          localStorage.setItem(
-            "user",
-            JSON.stringify(
-              res.data
-            )
-          );
-
-        } catch (error) {
-
-          setCurrentUser(
-            null
-          );
-
-          localStorage.removeItem(
-            "user"
-          );
-        }
-      };
-
+    const restoreSession = async () => {
+      try {
+        await refreshSession();
+      } catch (error) {
+        setCurrentUser(null);
+        localStorage.removeItem("user");
+      }
+    };
 
     restoreSession();
-
   }, []);
 
 
@@ -199,7 +175,8 @@ export const AuthProvider = ({
         currentUser,
         login,
         register,
-        logout
+        logout,
+        refreshSession,
       }}
     >
 

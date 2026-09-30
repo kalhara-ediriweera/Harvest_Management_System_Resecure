@@ -28,6 +28,7 @@ import FinancialDashboard from "./Pages/FinancialDashboard";
 import Dashboard from "./Pages/Dashboard";
 import Login from "./Pages/Login";
 import Register from "./Pages/Register";
+import OAuthCallback from "./Pages/OAuthCallback";
 import StockPage from "./Pages/StockManage/StockPage";
 import ShopPage from "./Pages/StockManage/ShopPage";
 import ShopDetailPage from "./Pages/StockManage/ShopDetailPage";
@@ -240,6 +241,7 @@ function App() {
         <Route path="/stock-management" element={<StockPage />} />
         <Route path="/login" element={<Login />} />
         <Route path="/register" element={<Register />} />
+        <Route path="/auth/callback" element={<OAuthCallback />} />
         <Route path="/dashboard" element={<Dashboard />} />
         <Route path="/disease-user" element={<DiseaseUser />} />
         <Route path="/diseases-admin" element={<DiseasesAdmin />} />
