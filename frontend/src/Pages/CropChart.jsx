@@ -46,16 +46,16 @@ const CropChart = () => {
   const fetchCrops = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      
+
       // For farmers, don't use scope=all to get only their crops
       // For admins, use scope=all to get all crops
       const isAdmin = currentUser && currentUser.role === 'admin';
       const scopeParam = isAdmin ? '&scope=all' : '';
-      
-      const response = await axios.get(`http://localhost:5000/crops?range=${timeRange}${scopeParam}` , {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+
+      const response =
+        await axios.get(
+          `http://localhost:5000/crops?range=${timeRange}${scopeParam}`
+        );
       setCropData(response.data.crops);
       setLoading(false);
     } catch (err) {
@@ -70,8 +70,8 @@ const CropChart = () => {
       if (existing) {
         existing.landArea += parseFloat(crop.landArea);
       } else {
-        acc.push({ 
-          paddyType: crop.paddyType, 
+        acc.push({
+          paddyType: crop.paddyType,
           landArea: parseFloat(crop.landArea),
           count: 1
         });
@@ -104,15 +104,15 @@ const CropChart = () => {
 
   const exportToCSV = () => {
     let csvContent = "data:text/csv;charset=utf-8,";
-    
+
     // Add headers
     csvContent += "Paddy Type,Land Area (acres),Count\n";
-    
+
     // Add data rows
     landAreaData.forEach(item => {
       csvContent += `${item.paddyType},${item.landArea},${item.count}\n`;
     });
-    
+
     const encodedUri = encodeURI(csvContent);
     const link = document.createElement("a");
     const isAdmin = currentUser && currentUser.role === 'admin';
@@ -130,7 +130,7 @@ const CropChart = () => {
     const isAdmin = currentUser && currentUser.role === 'admin';
     const sheetName = isAdmin ? "Crop Analytics" : "My Crop Analytics";
     XLSX.utils.book_append_sheet(workbook, worksheet, sheetName);
-    
+
     // Generate Excel file
     const excelBuffer = XLSX.write(workbook, { bookType: 'xlsx', type: 'array' });
     const data = new Blob([excelBuffer], { type: 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet' });
@@ -150,21 +150,21 @@ const CropChart = () => {
         <div className="flex flex-col md:flex-row justify-between items-start md:items-center gap-4">
           <div>
             <h1 className="text-3xl font-bold text-gray-800">
-              {currentUser && currentUser.role === 'admin' 
-                ? 'Crop Analytics Dashboard' 
+              {currentUser && currentUser.role === 'admin'
+                ? 'Crop Analytics Dashboard'
                 : 'My Crop Analytics'
               }
             </h1>
             <p className="text-gray-600">
-              {currentUser && currentUser.role === 'admin' 
-                ? 'Visual insights into all agricultural operations' 
+              {currentUser && currentUser.role === 'admin'
+                ? 'Visual insights into all agricultural operations'
                 : `Visual insights into ${currentUser?.name || 'your'} agricultural operations`
               }
             </p>
           </div>
-          
+
           <div className="flex gap-3">
-            <select 
+            <select
               className="bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm"
               value={timeRange}
               onChange={(e) => setTimeRange(e.target.value)}
@@ -174,8 +174,8 @@ const CropChart = () => {
               <option value="month">This Month</option>
               <option value="week">This Week</option>
             </select>
-            
-            <button 
+
+            <button
               onClick={fetchCrops}
               className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm hover:bg-gray-50 transition"
               disabled={loading}
@@ -185,7 +185,7 @@ const CropChart = () => {
             </button>
 
             <div className="relative export-dropdown">
-              <button 
+              <button
                 onClick={() => setShowMainExportDropdown(!showMainExportDropdown)}
                 className="flex items-center gap-2 bg-white border border-gray-300 rounded-md px-3 py-2 text-sm shadow-sm hover:bg-gray-50 transition"
               >
@@ -194,7 +194,7 @@ const CropChart = () => {
               </button>
               {showMainExportDropdown && (
                 <div className="absolute right-0 mt-1 w-40 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('csv');
                       setShowMainExportDropdown(false);
@@ -203,7 +203,7 @@ const CropChart = () => {
                   >
                     Export as CSV
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('excel');
                       setShowMainExportDropdown(false);
@@ -229,7 +229,7 @@ const CropChart = () => {
             {landAreaData.length}
           </p>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <h3 className="text-gray-500 text-sm font-medium">
             {currentUser && currentUser.role === 'admin' ? 'Total Land Area' : 'My Total Land Area'}
@@ -238,7 +238,7 @@ const CropChart = () => {
             {landAreaData.reduce((sum, item) => sum + item.landArea, 0).toFixed(2)} acres
           </p>
         </div>
-        
+
         <div className="bg-white p-6 rounded-xl shadow-sm border border-gray-200">
           <h3 className="text-gray-500 text-sm font-medium">
             {currentUser && currentUser.role === 'admin' ? 'Total Crops Tracked' : 'My Crops Tracked'}
@@ -258,7 +258,7 @@ const CropChart = () => {
               {currentUser && currentUser.role === 'admin' ? 'Land Area Distribution' : 'My Land Area Distribution'}
             </h2>
             <div className="relative export-dropdown">
-              <button 
+              <button
                 onClick={() => setShowBarChartExportDropdown(!showBarChartExportDropdown)}
                 className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-100"
               >
@@ -267,7 +267,7 @@ const CropChart = () => {
               </button>
               {showBarChartExportDropdown && (
                 <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('csv');
                       setShowBarChartExportDropdown(false);
@@ -276,7 +276,7 @@ const CropChart = () => {
                   >
                     CSV
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('excel');
                       setShowBarChartExportDropdown(false);
@@ -289,7 +289,7 @@ const CropChart = () => {
               )}
             </div>
           </div>
-          
+
           <div className="h-96">
             {loading ? (
               <div className="h-full flex items-center justify-center">
@@ -313,15 +313,15 @@ const CropChart = () => {
                     height={70}
                     tick={{ fontSize: 12 }}
                   />
-                  <YAxis 
-                    label={{ 
-                      value: 'Area (acres)', 
-                      angle: -90, 
+                  <YAxis
+                    label={{
+                      value: 'Area (acres)',
+                      angle: -90,
                       position: 'insideLeft',
-                      fontSize: 12 
+                      fontSize: 12
                     }}
                   />
-                  <Tooltip 
+                  <Tooltip
                     contentStyle={{
                       background: '#ffffff',
                       border: '1px solid #e2e8f0',
@@ -331,14 +331,14 @@ const CropChart = () => {
                     formatter={(value) => [`${value} acres`, 'Land Area']}
                   />
                   <Legend />
-                  <Bar 
-                    dataKey="landArea" 
+                  <Bar
+                    dataKey="landArea"
                     name="Land Area (acres)"
                     radius={[4, 4, 0, 0]}
                   >
-                    <LabelList 
-                      dataKey="landArea" 
-                      position="top" 
+                    <LabelList
+                      dataKey="landArea"
+                      position="top"
                       formatter={(value) => `${value} ac`}
                     />
                     {landAreaData.map((entry, index) => (
@@ -358,7 +358,7 @@ const CropChart = () => {
               {currentUser && currentUser.role === 'admin' ? 'Crop Type Distribution' : 'My Crop Type Distribution'}
             </h2>
             <div className="relative export-dropdown">
-              <button 
+              <button
                 onClick={() => setShowPieChartExportDropdown(!showPieChartExportDropdown)}
                 className="flex items-center gap-1 text-sm text-gray-600 hover:text-gray-900 px-2 py-1 rounded hover:bg-gray-100"
               >
@@ -367,7 +367,7 @@ const CropChart = () => {
               </button>
               {showPieChartExportDropdown && (
                 <div className="absolute right-0 mt-1 w-32 bg-white rounded-md shadow-lg z-10 border border-gray-200">
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('csv');
                       setShowPieChartExportDropdown(false);
@@ -376,7 +376,7 @@ const CropChart = () => {
                   >
                     CSV
                   </button>
-                  <button 
+                  <button
                     onClick={() => {
                       handleExport('excel');
                       setShowPieChartExportDropdown(false);
@@ -389,7 +389,7 @@ const CropChart = () => {
               )}
             </div>
           </div>
-          
+
           <div className="h-96">
             {loading ? (
               <div className="h-full flex items-center justify-center">
@@ -418,7 +418,7 @@ const CropChart = () => {
                       <Cell key={`cell-${index}`} fill={COLORS[index % COLORS.length]} />
                     ))}
                   </Pie>
-                  <Tooltip 
+                  <Tooltip
                     formatter={(value, name, props) => [
                       `${value} crops (${(props.payload.percent * 100).toFixed(1)}%)`,
                       props.payload.payload.paddyType
@@ -430,9 +430,9 @@ const CropChart = () => {
                       boxShadow: '0 4px 6px -1px rgba(0, 0, 0, 0.1)'
                     }}
                   />
-                  <Legend 
-                    layout="horizontal" 
-                    verticalAlign="bottom" 
+                  <Legend
+                    layout="horizontal"
+                    verticalAlign="bottom"
                     align="center"
                     wrapperStyle={{ paddingTop: '20px' }}
                   />

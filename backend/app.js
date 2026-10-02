@@ -21,10 +21,20 @@ const weatherRoutes = require('./routes/weatherRoutes');
 const smsRoutes = require('./routes/smsRoutes');
 
 const app = express();
-const { seedDefaultUsers } = require("./utils/seedUsers");
 
 // Middleware
-app.use(cors());
+
+const frontendOrigin =
+  process.env.FRONTEND_URL ||
+  "http://localhost:5173";
+
+app.use(
+  cors({
+    origin: frontendOrigin,
+    credentials: true
+  })
+);
+
 app.use(express.json());
 
 // Create uploads directory if it doesn't exist
@@ -58,7 +68,6 @@ mongoose
   .connect(dbURI)
   .then(() => {
     console.log("Connected to MongoDB");
-    seedDefaultUsers();
     app.listen(PORT, () => console.log(`Server running on port ${PORT}`));
   })
   .catch((err) => console.log(err));

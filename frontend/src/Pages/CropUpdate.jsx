@@ -23,10 +23,10 @@ const CropUpdate = () => {
   useEffect(() => {
     const fetchCrop = async () => {
       try {
-        const token = localStorage.getItem('token');
-        const res = await axios.get(`http://localhost:5000/crops/${id}`, {
-          headers: { Authorization: `Bearer ${token}` }
-        });
+        const res =
+          await axios.get(
+            `http://localhost:5000/crops/${id}`
+          );
         setFormData(res.data.crop);
       } catch (err) {
         console.error(err);
@@ -98,10 +98,10 @@ const CropUpdate = () => {
     if (!validateForm()) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.put(`http://localhost:5000/crops/update/${id}`, formData, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.put(
+        `http://localhost:5000/crops/update/${id}`,
+        formData
+      );
       toast.success("✅ Crop updated successfully!");
       setTimeout(() => navigate('/crop-table'), 1500);
     } catch (err) {
@@ -207,7 +207,7 @@ const CropUpdate = () => {
           Update Crop
         </button>
 
-        <ToastContainer 
+        <ToastContainer
           position="top-center"
           autoClose={3000}
           hideProgressBar={false}
@@ -218,7 +218,7 @@ const CropUpdate = () => {
           draggable
           pauseOnHover
           theme="colored"
-          style={{ 
+          style={{
             top: '80px', // Position below the navigation bar
             zIndex: 9999 // Higher than navigation bar z-index (99)
           }}

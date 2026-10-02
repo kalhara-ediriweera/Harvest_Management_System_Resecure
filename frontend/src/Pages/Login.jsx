@@ -1,20 +1,43 @@
-import React, { useState } from "react";
+import React, { useState, useEffect, useRef } from "react";
 import { useAuth } from "../contexts/AuthContext";
-import { useNavigate } from "react-router-dom";
+import { useNavigate, useSearchParams } from "react-router-dom";
 import { motion } from "framer-motion";
 import { Button } from "antd";
 import { FaUserLock } from "react-icons/fa";
 import { toast } from "react-toastify";
+import GoogleSignInButton from "../Components/GoogleSignInButton";
+
+const GOOGLE_ERROR_MESSAGES = {
+  google_denied: "Google sign-in was cancelled.",
+  google_state: "Your Google sign-in session expired. Please try again.",
+  google_unverified_email: "Your Google email address is not verified.",
+  google_admin_link_blocked:
+    "This email belongs to an administrator account. Please sign in with your password.",
+  google_failed: "Google sign-in failed. Please try again.",
+};
 
 const Login = () => {
   const { login } = useAuth();
   const navigate = useNavigate();
+  const [searchParams] = useSearchParams();
   const [form, setForm] = useState({ email: "", password: "" });
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState("");
   const [showForgotPassword, setShowForgotPassword] = useState(false);
   const [forgotEmail, setForgotEmail] = useState("");
   const [forgotSuccess, setForgotSuccess] = useState(false);
+  const errorHandledRef = useRef(false);
+
+  useEffect(() => {
+    const errorCode = searchParams.get("error");
+    if (errorCode && !errorHandledRef.current) {
+      errorHandledRef.current = true;
+      const message =
+        GOOGLE_ERROR_MESSAGES[errorCode] ||
+        "Google sign-in failed. Please try again.";
+      toast.error(message);
+    }
+  }, [searchParams]);
 
   const handleChange = (e) => {
     setForm({ ...form, [e.target.name]: e.target.value });
@@ -258,6 +281,17 @@ const Login = () => {
                     </>
                   ) : 'Sign In'}
                 </button>
+
+                <div className="relative my-4">
+                  <div className="absolute inset-0 flex items-center">
+                    <div className="w-full border-t border-gray-300" />
+                  </div>
+                  <div className="relative flex justify-center text-sm">
+                    <span className="px-2 bg-white text-gray-500">or</span>
+                  </div>
+                </div>
+
+                <GoogleSignInButton />
               </form>
             )}
 

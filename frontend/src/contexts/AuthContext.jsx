@@ -1,49 +1,191 @@
-import React, { createContext, useContext, useState, useEffect } from "react";
+import React, {
+  createContext,
+  useContext,
+  useEffect,
+  useState
+} from "react";
+
 import axios from "axios";
 
-const AuthContext = createContext();
 
-export const AuthProvider = ({ children }) => {
-  const [currentUser, setCurrentUser] = useState(null);
+const AuthContext =
+  createContext();
 
-  // Load user from token (optional improvement)
+const API_BASE_URL =
+  "http://localhost:5000";
+
+
+// Get only the normal user information
+// from Local Storage.
+
+// No JWT is stored here.
+const getStoredUser = () => {
+
+  try {
+
+    const storedUser =
+      localStorage.getItem(
+        "user"
+      );
+
+    return storedUser
+      ? JSON.parse(storedUser)
+      : null;
+
+  } catch {
+
+    return null;
+
+  }
+};
+
+
+export const AuthProvider = ({
+  children
+}) => {
+
+  const [
+    currentUser,
+    setCurrentUser
+  ] = useState(
+    getStoredUser
+  );
+
+
+  // Refresh session using the HttpOnly cookie
+  const refreshSession = async () => {
+    const res = await axios.get(`${API_BASE_URL}/api/auth/profile`);
+    setCurrentUser(res.data);
+    localStorage.setItem("user", JSON.stringify(res.data));
+    return res.data;
+  };
+
+  // Restore authentication using the HttpOnly cookie.
   useEffect(() => {
-    const token = localStorage.getItem("token");
-    if (token) {
-      const storedUser = JSON.parse(localStorage.getItem("user"));
-      setCurrentUser(storedUser);
-    }
+    const restoreSession = async () => {
+      try {
+        await refreshSession();
+      } catch (error) {
+        setCurrentUser(null);
+        localStorage.removeItem("user");
+      }
+    };
+
+    restoreSession();
   }, []);
 
+
+  // =========================
   // Login
-  const login = async (data) => {
-    const res = await axios.post("http://localhost:5000/api/auth/login", data);
-    setCurrentUser(res.data.user);
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
+  // =========================
+  const login = async (
+    data
+  ) => {
+
+    const res =
+      await axios.post(
+        `${API_BASE_URL}/api/auth/login`,
+        data
+      );
+
+
+    setCurrentUser(
+      res.data.user
+    );
+
+
+    // Store only user information.
+    // JWT is NOT stored.
+    localStorage.setItem(
+      "user",
+      JSON.stringify(
+        res.data.user
+      )
+    );
   };
 
+
+  // =========================
   // Register
-  const register = async (data) => {
-    const res = await axios.post("http://localhost:5000/api/auth/register", data);
-    setCurrentUser(res.data.user);
-    localStorage.setItem("token", res.data.token);
-    localStorage.setItem("user", JSON.stringify(res.data.user));
-  };
+  // =========================
+  const register =
+    async (data) => {
 
+      const res =
+        await axios.post(
+          `${API_BASE_URL}/api/auth/register`,
+          data
+        );
+
+
+      setCurrentUser(
+        res.data.user
+      );
+
+
+      // Store only user information.
+      localStorage.setItem(
+        "user",
+        JSON.stringify(
+          res.data.user
+        )
+      );
+    };
+
+
+  // =========================
   // Logout
-  const logout = () => {
-    setCurrentUser(null);
-    localStorage.removeItem("token");
-    localStorage.removeItem("user");
-    window.location.href = "/";
-  };
+  // =========================
+  const logout =
+    async () => {
+
+      try {
+
+        await axios.post(
+          `${API_BASE_URL}/api/auth/logout`
+        );
+
+      } catch (error) {
+
+        console.error(
+          "Logout request failed:",
+          error
+        );
+
+      } finally {
+
+        setCurrentUser(
+          null
+        );
+
+        localStorage.removeItem(
+          "user"
+        );
+
+        window.location.href =
+          "/";
+      }
+    };
+
 
   return (
-    <AuthContext.Provider value={{ currentUser, login, register, logout }}>
+
+    <AuthContext.Provider
+      value={{
+        currentUser,
+        login,
+        register,
+        logout,
+        refreshSession,
+      }}
+    >
+
       {children}
+
     </AuthContext.Provider>
   );
 };
 
-export const useAuth = () => useContext(AuthContext);
+
+export const useAuth = () =>
+  useContext(AuthContext);

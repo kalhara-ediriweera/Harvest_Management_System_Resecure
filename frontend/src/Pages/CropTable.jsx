@@ -6,11 +6,11 @@ import { Link, useNavigate } from 'react-router-dom';
 import 'react-toastify/dist/ReactToastify.css';
 import jsPDF from 'jspdf';
 import 'jspdf-autotable';
-import { 
-  FaEdit, 
-  FaTrashAlt, 
-  FaFilePdf, 
-  FaSearch, 
+import {
+  FaEdit,
+  FaTrashAlt,
+  FaFilePdf,
+  FaSearch,
   FaPlusCircle,
   FaChartBar,
   FaDownload
@@ -30,10 +30,10 @@ const CropTable = ({ hideAddButton = false }) => {
   const fetchCrops = async () => {
     try {
       setLoading(true);
-      const token = localStorage.getItem('token');
-      const response = await axios.get('http://localhost:5000/crops', {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      const response =
+        await axios.get(
+          "http://localhost:5000/crops"
+        );
       setCrops(response.data.crops);
       setLoading(false);
     } catch (err) {
@@ -54,10 +54,9 @@ const CropTable = ({ hideAddButton = false }) => {
     if (!confirmDelete) return;
 
     try {
-      const token = localStorage.getItem('token');
-      await axios.delete(`http://localhost:5000/crops/delete/${id}`, {
-        headers: { Authorization: `Bearer ${token}` }
-      });
+      await axios.delete(
+        `http://localhost:5000/crops/delete/${id}`
+      );
       toast.success('✅ Crop deleted successfully!');
       fetchCrops();
     } catch (err) {
@@ -68,38 +67,38 @@ const CropTable = ({ hideAddButton = false }) => {
 
   const generateSinglePDF = (crop) => {
     const doc = new jsPDF();
-    
+
     // Header
     doc.setFontSize(18);
     doc.setTextColor(27, 79, 114);
     doc.setFont('helvetica', 'bold');
     doc.text('CROP TRACKING REPORT', 105, 20, { align: 'center' });
-    
+
     // Line separator
     doc.setDrawColor(27, 79, 114);
     doc.line(20, 25, 190, 25);
-    
+
     // Report details
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(`Report Generated: ${new Date().toLocaleDateString()}`, 20, 35);
     doc.text(`Tracking ID: ${crop._id}`, 20, 42);
-    
+
     // Farmer Information
     doc.setFontSize(14);
     doc.setTextColor(27, 79, 114);
     doc.text('Farmer Information', 20, 55);
-    
+
     doc.setFontSize(12);
     doc.setTextColor(0, 0, 0);
     doc.text(`Name: ${crop.farmerName}`, 20, 65);
     doc.text(`Contact: ${crop.phoneNumber}`, 20, 72);
-    
+
     // Crop Details
     doc.setFontSize(14);
     doc.setTextColor(27, 79, 114);
     doc.text('Crop Details', 20, 85);
-    
+
     const cropData = [
       ['Paddy Type', crop.paddyType],
       ['Land Area', `${crop.landArea} hectares`],
@@ -107,7 +106,7 @@ const CropTable = ({ hideAddButton = false }) => {
       ['Fertilization Date', crop.fertilizationDate],
       ['Harvest Date', crop.harvestDate]
     ];
-    
+
     doc.autoTable({
       startY: 90,
       head: [['Field', 'Value']],
@@ -122,19 +121,19 @@ const CropTable = ({ hideAddButton = false }) => {
       },
       margin: { top: 90 }
     });
-    
+
     // Footer
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text('© 2025 HarvestEase - All Rights Reserved', 105, 285, { align: 'center' });
-    
+
     const fileName = `Crop_Report_${crop.farmerName?.replace(/\s+/g, '_')}.pdf`;
     doc.save(fileName);
   };
 
   const generateBulkPDF = () => {
     const doc = new jsPDF();
-    
+
     // Header
     doc.setFontSize(18);
     doc.setTextColor(27, 79, 114);
@@ -143,7 +142,7 @@ const CropTable = ({ hideAddButton = false }) => {
     doc.setFontSize(12);
     doc.setTextColor(100, 100, 100);
     doc.text(`Generated on ${new Date().toLocaleDateString()}`, 105, 28, { align: 'center' });
-    
+
     // Table data
     const tableData = filteredCrops.map(crop => [
       crop.farmerName,
@@ -153,7 +152,7 @@ const CropTable = ({ hideAddButton = false }) => {
       crop.fertilizationDate,
       crop.harvestDate
     ]);
-    
+
     doc.autoTable({
       startY: 40,
       head: [['Farmer', 'Paddy Type', 'Planted', 'Area', 'Fertilize', 'Harvest']],
@@ -168,13 +167,13 @@ const CropTable = ({ hideAddButton = false }) => {
       },
       margin: { top: 40 }
     });
-    
+
     // Footer
     doc.setFontSize(10);
     doc.setTextColor(100, 100, 100);
     doc.text(`Total Records: ${filteredCrops.length}`, 20, doc.lastAutoTable.finalY + 10);
     doc.text('© 2025 HarvestEase - All Rights Reserved', 105, 285, { align: 'center' });
-    
+
     doc.save('Crop_Tracking_Summary.pdf');
   };
 
@@ -194,7 +193,7 @@ const CropTable = ({ hideAddButton = false }) => {
               <h1 className="text-3xl font-bold text-gray-800">HarvestEase Crop Tracking</h1>
               <p className="text-gray-600">Manage and track all your agricultural operations</p>
             </div>
-            
+
             <div className="flex gap-3">
               {/* Conditionally render Add New Crop button based on hideAddButton prop */}
               {!hideAddButton && (
@@ -205,7 +204,7 @@ const CropTable = ({ hideAddButton = false }) => {
                   <FaPlusCircle /> Add New Crop
                 </button>
               )}
-              
+
               {/* Conditionally render View Analytics button - hide when hideAddButton is true (admin view) */}
               {!hideAddButton && (
                 <Link to="/crop-chart">
@@ -232,7 +231,7 @@ const CropTable = ({ hideAddButton = false }) => {
                   className="block w-full pl-10 pr-3 py-2 border border-gray-300 rounded-lg bg-gray-50 focus:ring-2 focus:ring-green-500 focus:border-green-500"
                 />
               </div>
-              
+
               <div className="flex gap-3 w-full md:w-auto">
                 <button
                   onClick={fetchCrops}
@@ -240,7 +239,7 @@ const CropTable = ({ hideAddButton = false }) => {
                 >
                   <MdRefresh className={`${loading ? 'animate-spin' : ''}`} />
                 </button>
-                
+
                 <button
                   onClick={generateBulkPDF}
                   className="flex items-center gap-2 bg-white border border-gray-300 text-gray-700 hover:bg-gray-50 px-3 py-2 rounded-lg shadow-sm transition"
@@ -370,7 +369,7 @@ const CropTable = ({ hideAddButton = false }) => {
           )}
         </div>
 
-        <ToastContainer 
+        <ToastContainer
           position="top-center"
           autoClose={3000}
           hideProgressBar={false}

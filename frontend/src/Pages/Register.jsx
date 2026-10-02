@@ -4,6 +4,7 @@ import { useNavigate } from "react-router-dom";
 import { motion } from "framer-motion";
 import { toast, ToastContainer } from "react-toastify";
 import "react-toastify/dist/ReactToastify.css";
+import GoogleSignInButton from "../Components/GoogleSignInButton";
 
 const Register = () => {
   const { register } = useAuth();
@@ -291,7 +292,6 @@ const Register = () => {
                 >
                   <option value="farmer">Farmer</option>
                   <option value="buyer">Buyer</option>
-                  <option value="admin">Admin</option>
                 </select>
               </div>
 
@@ -310,6 +310,19 @@ const Register = () => {
                   </>
                 ) : 'Register'}
               </button>
+
+              <div className="relative my-4">
+                <div className="absolute inset-0 flex items-center">
+                  <div className="w-full border-t border-gray-300" />
+                </div>
+                <div className="relative flex justify-center text-sm">
+                  <span className="px-2 bg-white text-gray-500">or</span>
+                </div>
+              </div>
+
+              <GoogleSignInButton
+                role={form.role === "buyer" || form.role === "farmer" ? form.role : undefined}
+              />
             </form>
 
             <div className="mt-6 text-center text-sm text-gray-600">
