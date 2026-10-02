@@ -89,19 +89,12 @@ export const AuthProvider = ({
       );
 
 
-    setCurrentUser(
-      res.data.user
-    );
+    setCurrentUser(res.data);
 
-
-    // Store only user information.
-    // JWT is NOT stored.
-    localStorage.setItem(
-      "user",
-      JSON.stringify(
-        res.data.user
-      )
-    );
+    localStorage.setItem("user", JSON.stringify(res.data));
+    if (res.data.token) {
+      localStorage.setItem("token", res.data.token);
+    }
   };
 
 
@@ -118,18 +111,12 @@ export const AuthProvider = ({
         );
 
 
-      setCurrentUser(
-        res.data.user
-      );
+      setCurrentUser(res.data);
 
-
-      // Store only user information.
-      localStorage.setItem(
-        "user",
-        JSON.stringify(
-          res.data.user
-        )
-      );
+      localStorage.setItem("user", JSON.stringify(res.data));
+      if (res.data.token) {
+        localStorage.setItem("token", res.data.token);
+      }
     };
 
 
@@ -154,13 +141,9 @@ export const AuthProvider = ({
 
       } finally {
 
-        setCurrentUser(
-          null
-        );
-
-        localStorage.removeItem(
-          "user"
-        );
+        setCurrentUser(null);
+        localStorage.removeItem("user");
+        localStorage.removeItem("token");
 
         window.location.href =
           "/";

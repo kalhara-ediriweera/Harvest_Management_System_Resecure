@@ -14,6 +14,13 @@ const OAuthCallback = () => {
 
     const handleCallback = async () => {
       try {
+        const urlParams = new URLSearchParams(window.location.search);
+        const token = urlParams.get("token");
+
+        if (token) {
+          localStorage.setItem("token", token);
+        }
+
         const user = await refreshSession();
         const role = user?.role;
 

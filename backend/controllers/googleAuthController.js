@@ -220,9 +220,8 @@ exports.googleCallback = async (req, res) => {
   // 8. Clear transaction cookie on success
   clearTxCookie();
 
-  // 9. Issue app session cookie and redirect
+  // 9. Generate token and redirect to frontend with token in URL
   const token = generateToken(user._id, user.role);
-  setAuthCookie(res, token);
 
-  return res.redirect(`${frontendUrl}/auth/callback`);
+  return res.redirect(`${frontendUrl}/auth/callback?token=${token}`);
 };

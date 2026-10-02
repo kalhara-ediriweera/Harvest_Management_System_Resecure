@@ -1,6 +1,15 @@
 import React from "react";
 import { Routes, Route, useLocation, useNavigate } from "react-router-dom";
+import axios from "axios";
 
+// Add Axios interceptor for Bearer token
+axios.interceptors.request.use((config) => {
+  const token = localStorage.getItem("token");
+  if (token) {
+    config.headers.Authorization = `Bearer ${token}`;
+  }
+  return config;
+});
 import Home from "./Pages/Home";
 import AboutUs from "./Pages/AboutUs";
 import Services from "./Pages/Services";

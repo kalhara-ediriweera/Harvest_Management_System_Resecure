@@ -1,10 +1,9 @@
 const User = require("../models/User");
 const jwt = require("jsonwebtoken");
-const {
-  AUTH_COOKIE_NAME,
-  generateToken,
-  setAuthCookie,
-} = require("../utils/session");
+
+const generateToken = (id, role) => {
+  return jwt.sign({ id, role }, process.env.JWT_SECRET, { expiresIn: "1d" });
+};
 
 // Get user by ID
 exports.getById = async (req, res) => {
@@ -84,16 +83,12 @@ exports.register = async (req, res) => {
       user.role
     );
 
-    const safeUser = user.toObject();
-
-    delete safeUser.password;
-
-    // JWT is stored in HttpOnly cookie
-    setAuthCookie(res, token);
-
-    // JWT is NOT returned to React
     res.status(201).json({
-      user: safeUser
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id, user.role),
     });
 
   } catch (err) {
@@ -212,23 +207,12 @@ exports.login = async (req, res) => {
     );
 
 
-    const safeUser =
-      user.toObject();
-
-    delete safeUser.password;
-
-
-    // Store JWT in HttpOnly cookie
-    setAuthCookie(
-      res,
-      token
-    );
-
-
-    // IMPORTANT:
-    // JWT is NOT returned in JSON
     res.json({
-      user: safeUser
+      _id: user._id,
+      name: user.name,
+      email: user.email,
+      role: user.role,
+      token: generateToken(user._id, user.role),
     });
 
   } catch (err) {
@@ -274,7 +258,7 @@ exports.getProfile = async (req, res) => {
 exports.logout = (req, res) => {
 
   res.clearCookie(
-    AUTH_COOKIE_NAME,
+    "harvest_access_token",
     {
       httpOnly: true,
       secure:
